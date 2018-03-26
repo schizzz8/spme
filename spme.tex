@@ -1,5 +1,16 @@
 \documentclass{article}
 
+%% Key definitions for text elements. USE THEM
+\def\secref#1{Sec.~\ref{#1}}
+\def\figref#1{Fig.~\ref{#1}}
+\def\tabref#1{Tab.~\ref{#1}}
+\def\eqref#1{Eq.~(\ref{#1})}
+\def\algref#1{Alg.~\ref{#1}}
+\def\appref#1{App.~\ref{#1}}
+
+\newcommand\etal{\emph{et al.}}
+
+
 \begin{document}
 	
 	\section*{Semantic Perception, Mapping and Exploration}
@@ -7,11 +18,24 @@
 	Acquisition and modeling of semantic information is a key requisite for mobile robots to be deployed in human environments. In this field, fundamental aspects faced by research are: the recognition of places and objects, the construction of semantic models and the exploration strategies to enrich contextual knowledge. In the remainder of this section, we will present relevant work that focused on the mentioned problems, namely: semantic perception, semantic mapping and semantic exploration.
 	
 	\subsection*{Semantic Perception}
+	Extracting semantic information from visual data is one of the  fundamental problems of computer vision. Scene understanding can be decomposed into sub-tasks, depending on the information one is interested to extract from the input data. These sub-tasks can be organized on a progression that goes from coarse to fine grained inference.
 	
-	Mobile and autonomous robots operate in unstructured and unpredictable environments, where it's unlikely to have a prior knowledge of the workspace. In such settings, different techniques have been proposed to provide the robot with	the capability of extracting relevant information from sensor data to complete its tasks. In the last two decades, thanks to the increasing availability of visual and range sensors, a common solution has been to rely on scene analysis and image understanding methods.
+	Image classification is the task of assigning a semantic label to an input image from a fixed set of categories. Ulrich and Nourbakhsh \cite{ulrich2000icra} propose an appearance-based place recognition system for topological localization. They use colour histogram features \cite{swain1991ijcv} and a simple voting scheme for nearest-neighbor matching. In a similar fashion, Torralba \etal~\cite{torralba2003context} derive an hidden Markov model (HMM) for place recognition and new place categorisation based on the global statistic feature retrieved from texture \cite{oliva2001ijcv}. In contrast, Lisin \etal~\cite{lisin2005cvpr} propose to model classes of images as a probability distribution over local features, in order to be combined with global features. This method has proven to perform well in applications where a rough segmentation of objects is available.
+	
+	Object detection consists of making a prediction not only of object categories but also of their spatial locations. A seminal work can be considered that of Viola and Jones \cite{viola2004ijcv}, who proposed a fast and robust face detection. Their method makes use of Haar-like features \cite{papageorgiou1998iccv} to search for likely face candidates, which can then be refined using a cascade of more expensive but selective detection algorithms \cite{freund1997jcss}. Likewise, a well-known example of pedestrian detection has been proposed by Dalal and Triggs \cite{dalal2005cvpr}, who use a set of overlapping Histogram of Oriented Gradients (HOG) descriptors fed into a Support Vector Machine (SVM) \cite{cortes1995support}.
+	
+	Image segmentation is the task of finding groups of pixels that possess some "similarity" and is one of the oldest and most widely studied problems in computer vision.
+	Early techniques focus on local region merging and splitting \cite{ohlander1978picture,brice1970scene}, while, more recent algorithms often optimize some global criterion, such as intra-region consistency and inter-region boundary lengths or dissimilarity \cite{comaniciu2002pami,shi2000pami,felzenszwalb2004ijcv,chan2001ip,osher1988jcp}. 
+	
+	Despite the popularity of the presented methods, a recent breakthrough in scene understanding has been the adoption of Convolutional Neural Networks (CNNs) \cite{garcia2017review}. Krizhevsky \etal in \cite{krizhevsky2012nipsjournal} present the pioneering deep CNN that, despite its simplicity, won the Imagenet 2012 classification challenge with wide margin on the closest competitor. Similarly, different object detection methods based on deep neural netowrks have shown to outperform the state-of-the-art \cite{redmon2016cvpr,erhan2014cvpr,liu2016eccv}. Consequently, the capabilities of such networks have been also investigated in pixel-level labeling problems like semantic segmentation. In this context, a milestone is the work of Long \etal~\cite{long2015cvpr} who transformed existing classification models (\cite{simonyan2014very,szegedy2015cvpr}) into fully convolutional ones to output spatial maps instead of classification scores. One of the main reason behind its popularity is that, with this approach, CNNs can be trained end-to-end and efficiently learn to make dense predictions with inputs of arbitrary size.
+	
+	
+
 	\subsection*{Semantic Mapping}
 	
 	\subsection*{Semantic Exploration}
 	
+	\bibliography{references}
+	\bibliographystyle{plain}
 	
 \end{document}
