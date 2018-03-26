@@ -10,10 +10,15 @@
 
 \newcommand\etal{\emph{et al.}}
 
+\title{\LARGE \bf Semantic Perception, Mapping and Exploration}
 
 \begin{document}
 	
-	\section*{Semantic Perception, Mapping and Exploration}
+	\maketitle	
+	
+	\section*{Introduction}
+	
+	\section*{Related Work}
 	
 	Acquisition and modeling of semantic information is a key requisite for mobile robots to be deployed in human environments. In this field, fundamental aspects faced by research are: the recognition of places and objects, the construction of semantic models and the exploration strategies to enrich contextual knowledge. In the remainder of this section, we will present relevant work that focused on the mentioned problems, namely: semantic perception, semantic mapping and semantic exploration.
 	
@@ -29,11 +34,21 @@
 	
 	Despite the popularity of the presented methods, a recent breakthrough in scene understanding has been the adoption of Convolutional Neural Networks (CNNs) \cite{garcia2017review}. Krizhevsky \etal in \cite{krizhevsky2012nipsjournal} present the pioneering deep CNN that, despite its simplicity, won the Imagenet 2012 classification challenge with wide margin on the closest competitor. Similarly, different object detection methods based on deep neural netowrks have shown to outperform the state-of-the-art \cite{redmon2016cvpr,erhan2014cvpr,liu2016eccv}. Consequently, the capabilities of such networks have been also investigated in pixel-level labeling problems like semantic segmentation. In this context, a milestone is the work of Long \etal~\cite{long2015cvpr} who transformed existing classification models (\cite{simonyan2014very,szegedy2015cvpr}) into fully convolutional ones to output spatial maps instead of classification scores. One of the main reason behind its popularity is that, with this approach, CNNs can be trained end-to-end and efficiently learn to make dense predictions with inputs of arbitrary size.
 	
-	
-
 	\subsection*{Semantic Mapping}
 	
+	Building a digital representation of the environment where the robot has to operate, is a well studied problem in both robotics and AI communities (citations needed). In literature,  different types of representations have been proposed, as well as different methods to obtain each of them. It  is possible to classify these representations by the type of information they convey to the robot, i.e.: metric, that can be used to measure physical quantities in the environment such as distance to obstacles; topological, that allows the robot to assess the connectivity between places and/or objects in the environment and semantic, that tells the robot to which category the objects in the map belong to. Traditional approaches dealt with the reconstruction of metric and topological information, whereas, recent years have seen growing interest in enriching the existing representations with semantics \cite{kostavelis2015semantic,liu2016extracting}. This involves segmenting a scene by assigning a label to the extracted features and mantaining the correspondence with already seen features to integrate the current measurement in a globally consistent model.
+	
+	Hermans et al., in \cite{hermans2014dense}, address the problem of dense semantic segmentation of 3d point clouds. Here, the term "dense" indicates that the proposed method works with the whole measurement returned by the sensor, thus, each feature is a single point of the 3d point cloud obtained from the RGB-D camera. In this work, the authors propose a mapping scheme which is made of three components: a Randomized Decision Forest (RDF) to obtain a 2D segmentation of the RGB image, a 3D scene reconstruction to obtain a geometric model of the environment and the correspondence between features of two consecutive frames and, finally, a Conditional Random Field \cite{krahenbuhl2011efficient} to properly assign the semantic labels of the 2d segmentation to the 3d points of the geometric model. A significant contribution of this work is that the proposed pipeline can meet real-time requirements, however, segmentation results are not comparable with offline methods.
+	
+	McCormac et al. \cite{mccormac2017semanticfusion} follow a similar approach to the one described so far, with the difference that they use a Convolutional Neural Netowork \cite{noh2015learning} to obtain a semantic segmentation of the RGB image.  This clearly improves classification results, as CNNs have shown impressive performance on such tasks, however still it's not clear how a semantically annotated 3d point cloud can be used by the robot for its purposes. This is because a point cloud is an unstructured representation, i.e. no connectivity information is provided, making it not suitable for tasks like path planning and execution.
+	
+	In (cite), Gunther et al. consider a different model to represent the environment, that is, instead of using a point cloud, which can be seen as a low-level representation, their model is directly made of objects. To build such a model, the authors use a 3d object recognition system, which, given a 3d point cloud, returns the set of objects detected in the scene in terms of their 3d pose, bounding box and semantic label. Moreover they propose an effective segmentation scheme that takes advantage of the contextual relations inherent to human-made spaces in order to improve classification results. This is achieved by building a graph, from the objects in the scene, which is exploited by a CRF to smooth the output of the object recognition. The main drawback of this method, is that the object recognition method guarantees reasonable results only under strong assumptions, that is, the scene observed by the robot must be a table, the objects in the scene must be already known and a CAD model for each of them must be available.
+	
+	A possible solution to this shortcoming is to keep the map representation proposed in Gunther et al., while using a more sophisticated method to segment the scene. Nowadays, CNNs are proving to be an effective solution for visual problems like that, thus, it's a reasonable idea to consider their use in such a context.
+		
 	\subsection*{Semantic Exploration}
+	
+	\section*{Technical Section}
 	
 	\bibliography{references}
 	\bibliographystyle{plain}
