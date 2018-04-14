@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{graphics} 
 \usepackage{graphicx}
+\usepackage[]{algorithm2e}
 
 %% Key definitions for text elements. USE THEM
 \def\secref#1{Sec.~\ref{#1}}
@@ -71,9 +72,34 @@
 %	Input: set of models, robot pose. Output: set of detections. Steps: for each model, check if it's in frustum and transform it into camera frame. for each pixel of the depth image check if it falls into a model bounding box and assign it to its detection.
 	
 	Semantic segmentation can be regarded as the task of localizing and classifying objects in the scene and label each image pixel according to its semantic class.
-	More formally, given an image I and a set of semantic labels L, semantic segmentation computes an assignment to each image pixel x of a label l.
+	More formally, given an image $I \subset \mathbf{N}^{3 \times 2}$ and a set of semantic labels $L = \{l_i\}_{i=1 \dots L}$, semantic segmentation computes an assignment to each image pixel $x = (u,v) \in I$ of a label $l_i$.
 	
-	In a simulated environment it's possible to execute this task by performing geometrical computations. Since we know the pose of the objects and the robot in the world, if we assume that the robot is equipped with a sensor that has a known field-of-view, inferring which objects the robot is perceiving can be done through view frustum culling (cite), as shown in (fig). After this step, it's necessary to decide which elements in the view frustum are visible by the robot, and which are hidden. This is a well-known problem in Computer Graphics and can be solved with a Z-buffer algorithm (cite). Since we know that the robot is equipped with a visual sensor, we can assume that the depth image D is indeed a Z-buffer, thus, we use this information for occlusion check.
+	In a simulated environment it's possible to execute this task by performing only geometrical computations, since one knows the pose of the objects and the robot in the world. So, if we assume that the robot is equipped with a sensor that has a known field-of-view, inferring which objects it's perceiving can be done through view frustum culling (cite), as shown in (fig). After this step, it's necessary to decide which elements in the view frustum are visible by the robot, and which are hidden. This is a well-known problem in Computer Graphics and can be solved with Z-buffer algorithm (cite). Since we know that the robot is equipped with a visual sensor, we can assume that the depth image $D \subset \mathbf{R}^2$ is indeed a Z-buffer, thus, we use this information for occlusion check. First, each model 3D bounding box $BB = < \emph{min} ,\emph{max} > \in \mathbf{R}^{3 \times 2}$ is transformed in camera frame and \emph{min},\emph{max} are recomputed. Then, occlusion check is performed by counting for each model how many times is voted, i.e. x in BB, by a point of the depth image x (binning). In this way, models that get no votes are hidden to the robot. A model that passes this step is upgraded to a detection $<$Type,Position2D,Size2D$>$. 
+	
+	\begin{center}
+		\begin{algorithm}[H]
+			\KwData{$\mathcal{T}$}
+			\KwResult{$\mathcal{D}$}
+			\For{$m_i \in \mathcal{M}$}
+			{
+				$m_i \leftarrow T \ast mi_i$\;
+			}
+			\For{$x \in D$}
+			{
+				$m_i \leftarrow \texttt{voteModel}(x)$
+				
+				\If{$!(m_i \in \mathcal{D})$}
+				{
+					$d \leftarrow \texttt{detect}(m_i)$
+					
+					$\mathcal{D} \leftarrow \texttt{insert}(d)$
+				}
+				
+				$d \leftarrow \texttt{update}(x)$
+			}
+		\caption{Semantic Segmentation}
+		\end{algorithm}
+	\end{center}
 	
 	\subsection{Mapping}
 	
