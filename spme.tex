@@ -111,7 +111,9 @@
 %	The process of building a semantic map consists in integrating into the robot digital representation of the environment the sequence of measurements acquired with on-board sensors. To this end,  it's necessary to set a global reference frame for the pose of the robot and objects in the scene.
 
 
-A key requirement for a "mobile and autonomous" robot is the capability of autonomously exploring and manipulating in human environments. To perform these tasks the robot needs a representation of the environment. In human environments, robots have to build autonomously such representations. As discussed in sec.~\ref{related}(related), a suitable representation for this type of robotic applications should contain object level features to encode also semantic information. The process of building a semantic map consists in integrating into the robot digital representation the sequence of measurements acquired with on-board sensors and is divided in two steps. Objects are extracted from the depth image and assembled in a local map. Then, data association is performed to find corresponding objects between local and global map and update the global map accordingly.
+A key requirement for a "mobile and autonomous" robot is the capability of autonomously exploring and manipulating in human environments. To perform these tasks the robot needs a representation of the environment. In human environments, robots have to build autonomously such representation. As discussed in sec.~\ref{related}(related), a suitable representation for this type of robotic applications should contain object-level features to encode also semantic information. 
+
+The process of building a semantic map consists in integrating into the robot digital representation the sequence of measurements acquired with on-board sensors. As a first step, objects are extracted from the depth image and assembled in a local map. Then, the update of the map can be done by registering the current frame with a global model. To this end, it's necessary to know the pose of the robot relative to the global reference frame. This information may be provided by SLAM systems, while, in simulation environments is given by default. Once objects are transformed in global frame, data association is performed to find correspondences between local and global map (object tracking) and update the global map accordingly.
 	
 %	assumptions:
 %	-is localized
@@ -122,12 +124,13 @@ A key requirement for a "mobile and autonomous" robot is the capability of auton
 %	-autonomous exploration
 %	-incremental mapping
 	
-	Our system of object tracking has the task of identifying the occurrence of scene features (in our case objects) across different views of the scene. This is typically performed in two steps: feature extraction,data-association. 1) build object from detection, 2) finds corresponding objects between global and local map.
+	Our system of object tracking has the task of identifying the occurrence of scene features (in our case objects) across different views of the scene. This is typically performed in two steps. 1) feature extraction, build object from detection, 2) data-association, finds corresponding objects between global and local map.
+	
+	Feature extraction is performed by taking the output of the perception module and building an object (atomic entity of the map) from each detection. After that, by knowing the pose of the robot in the global frame, it's possible to transform the extracted objects in the global frame to find correspondences.
 	
 	Data association finds which objects in the global map correspond to the one observed in the local map. This correspondence is evaluated through a similarity measure. So that, finding a corresponding object can be casted into a nearest-neighbor search. Usually, similarity is computed through euclidean distance. In our problem, it's possible to leverage also semantic information. In case of a limited number of objects, brute-force is a reasonable technique to choose. In the simulated environment, the knowledge of the semantic class is perfect. In real world scenarios, object detectors return a probability distribution over semantic labels. In the first case, the corresponding object is the closest one with the same type. In the second case, euclidean distance could be weighted with class probabilities to represent a form of similarity measure.
 	
 	Map update is performed by consistently integrating incoming information from local map into global map. Input: maps, correspondences. Output: updated global map. Steps: for each object in local map check if it's already been seen, yes: merge, no: add to map. This strategy may fail in case of false positives returned by data association. Possible solution:  aging scheme.
-	
 	 
     \begin{figure}[htbp]
 		\centering
