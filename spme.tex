@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{graphics} 
 \usepackage{graphicx}
+\usepackage[]{algorithm2e}
 
 %% Key definitions for text elements. USE THEM
 \def\secref#1{Sec.~\ref{#1}}
@@ -21,10 +22,12 @@
 	\section*{Introduction}
 	
 	\section*{Related Work}
+	\label{related}
 	
 	Acquisition and modeling of semantic information is a key requisite for mobile robots to be deployed in human environments. In this field, fundamental aspects faced by research are: the recognition of places and objects, the construction of semantic models and the exploration strategies to enrich contextual knowledge. In the remainder of this section, we will present relevant work that focused on the mentioned problems, namely: semantic perception, semantic mapping and semantic exploration.
 	
 	\subsection*{Semantic Perception}
+	
 	Extracting semantic information from visual data is one of the  fundamental problems of computer vision. Scene understanding can be decomposed into sub-tasks, depending on the information one is interested to extract from the input data. These sub-tasks can be organized on a progression that goes from coarse to fine grained inference.
 	
 	Image classification is the task of assigning a semantic label to an input image from a fixed set of categories. Ulrich and Nourbakhsh \cite{ulrich2000icra} propose an appearance-based place recognition system for topological localization. They use colour histogram features \cite{swain1991ijcv} and a simple voting scheme for nearest-neighbor matching. In a similar fashion, Torralba \etal~\cite{torralba2003context} derive an hidden Markov model (HMM) for place recognition and new place categorisation based on the global statistic feature retrieved from texture \cite{oliva2001ijcv}. In contrast, Lisin \etal~\cite{lisin2005cvpr} propose to model classes of images as a probability distribution over local features, in order to be combined with global features. This method has proven to perform well in applications where a rough segmentation of objects is available.
@@ -50,12 +53,111 @@
 		
 	\subsection*{Semantic Exploration}
 	
-	\section*{Technical Section}
+	The main goal of an autonomous robotic exploration algorithm is to direct robots towards unknown space, thus expanding the known and explored portion of a map which is being created as a robot moves. A common solution for such task are frontier-based strategies. Frontier edges are lines that separate known space from unknown space in an occupancy grid map. Once a frontier edge is detected, a point on the detected edge, which is normally the centroid, is assigned to a robot for exploration. In order to extract frontier edges, the entire map has to be processed, and as the map expands, processing it will consume more and more computational resources. More efficient schemes have also been proposed.
 	
-    \begin{figure}[htbp]
-		\centering
-		\includegraphics[width=\linewidth]{pics/pipeline}
-	\end{figure}	
+	Another class of exploration strategies deploy randomized search techniques such as the simple random walker, and the Sensor-based Random Tree (SRT), which is a variant of RRT. RRT is a path planning algorithm that samples space using randomly generated points. Random points are used to extend edges in a tree-like structure. One possible mode of RRT based exploration is to make robots follow the above mentioned tree structure as the tree structure grows.
+	
+	RRT is heavily biased towards unexplored and unvisited regions. In addition, RRT provides completeness, which ensures complete map coverage. Due to these properties, RRT has gained interest in exploration. However, making robots use RRT can be inefficient because of the possibility that robots may try to revisit map areas that are already explored. This is because branches can grow from random points at different time steps. To avoid this, SRT was used. SRT grows one branch at time, a robot follows this branch in space until the branch can no longer extend due to the existence of a physical obstacle to robot motion. However, this approach of SRT doesn't necessarily reduce overlapping either. If a branch is not able to extend, the robot has to go back and track previous positions in an attempt to find a position in space where a new branch can extend from. This process is known as backtracking, and is a major source for overlapping. As a result, researchers proposed solutions to reduce backtracking.
+	
+	
+	\section*{Technical Section}
+		 
+	 \begin{figure}[htbp]
+	 	\centering
+	 	\includegraphics[width=\linewidth]{pics/pipeline}
+	 \end{figure}
+	
+%	Our system to build and maintain a semantic map is made of three components: perception, mapping and exploration.
+%	
+%	\begin{itemize}
+%		\item perception: given an RGB-D frame, detects objects
+%		\item mapping: builds a local map from the current view and updates the global map
+%		\item exploration: finds the best view to improve robot knowledge of the environment
+%	\end{itemize}
+%	
+%	These components communicate with each other exchanging data structures. Perception receives frame from exploration and returns an array of detections. A detection is an entry in a list whose fields are: type, position, size and pixels. Mapping receives detections, builds 3D objects from it (local map), performs data association with global map and merges the two. An object is an entry in a list (map) whose fields are: type, pose, size and model.
+	
+	Our pipeline is made of three modules that exchange data structures among each other to build and maintain a semantic map. The perception module is in charge of classifying objects seen by the robot, it receives a pair of RGB-D images and returns the set of detections. Consequently, the mapping module builds a local map from the objects detected by the perception module and updates the global map with the incoming information. Finally, the exploration module takes as input the updated global map and current robot pose and finds the best view to improve robot knowledge of the environment.
+	
+	\subsection*{Perception}
+	
+%	Given an image and a set of semantic classes, semantic segmentation is the task of localizing and classifying objects in the view and label each pixel according to its semantic class. How to perform segmentation in a simulated environment. You know the pose of objects and robot in the world. If you assume that the robot is equipped with a sensor that has a known field-of-view, then inferring which object the robot is perceiving requires some geometrical computations. Then, it's necessary to decide which elements of the scene are visible, and which are hidden. This is typically solved with a Z-buffer in Computer Graphics. Since we know that the robot is equipped with a visual sensor, we can assume that the depth image is indeed a Z-buffer, thus, we use this information for occlusions check.
+%	
+%	Input: set of models, robot pose. Output: set of detections. Steps: for each model, check if it's in frustum and transform it into camera frame. for each pixel of the depth image check if it falls into a model bounding box and assign it to its detection.
+	
+	Semantic segmentation can be regarded as the task of localizing and classifying objects in the scene to label each image pixel with its semantic class.
+	More formally, given an image $I \subset \mathbf{N}^{3 \times 2}$ and a set of semantic labels $\mathcal{L} = \{l_i\}_{i=1 \dots L}$, semantic segmentation computes an assignment of labels $l_i \in \mathcal{L}$ to each image pixel $x = (u,v) \in I$ .
+	
+	In a simulated environment it's possible to execute this task by performing only geometrical computations, since one knows the pose of the objects and the robot in the world.	A virtual camera can be defined through its field-of-view, thus, inferring which objects it's framing can be done through view frustum culling (cite), as shown in (fig). After this step, it's necessary to decide which elements in the view frustum are visible by the robot, and which are hidden. This is a well-known problem in Computer Graphics and can be solved with Z-buffer algorithm (cite). Since we know that the robot is equipped with a visual sensor, we can assume that the depth image $D \subset \mathbf{R}^2$ is indeed a Z-buffer, thus, we use this information for occlusion check. First, each model 3D bounding box $BB = < \emph{min} ,\emph{max} > \in \mathbf{R}^{3 \times 2}$ is transformed in camera frame and \emph{min},\emph{max} are recomputed. Then, occlusion check is performed by counting for each model how many times it's voted, i.e. x in BB, by a point of the depth image x (binning). In this way, models that get no votes are hidden to the robot. A model that passes this step is upgraded to a detection $<$Type,Position2D,Size2D$>$. 
+	
+	\begin{center}
+		\begin{algorithm}[H]
+			\KwData{$\mathcal{T}$}
+			\KwResult{$\mathcal{D}$}
+			\For{$m_i \in \mathcal{M}$}
+			{
+				$m_i \leftarrow T \ast mi_i$
+			}
+			\For{$x \in D$}
+			{
+				$m_i \leftarrow \texttt{voteModel}(x)$
+				
+				\If{$!(m_i \in \mathcal{D})$}
+				{
+					$d \leftarrow \texttt{detect}(m_i)$
+					
+					$\mathcal{D} \leftarrow \texttt{insert}(d)$
+				}
+				
+				$d \leftarrow \texttt{update}(x)$
+			}
+		\caption{Semantic Segmentation}
+		\end{algorithm}
+	\end{center}
+	
+	\subsection*{Mapping}
+	
+%	Semantic mapping is the task of incrementally updating a semantic map with the current frame. Assuming that the two maps are in the same reference frame, data association is performed to find corresponding objects. Remarks: it's a crucial step, high-level features makes the problem easier.	In case of a limited number of objects, brute-force is a reasonable technique to choose. In the simulated environment, the knowledge of the semantic class is perfect. In real world scenarios, object detectors return a probability distribution over semantic labels. In the first case, the corresponding object is the closest one with the same type. In the second case, euclidean distance could be scaled with class probabilities to represent a form of similarity measure.	Once data association found object correspondences, it's time to perform the actual update of the map. Input: maps, correspondences. Output: updated global map. Steps: for each object in local map check if it's already been seen, yes: merge, no: add to map. This strategy may fail in case of false positives returned by data association. Possible solution:  aging scheme.
+%	
+%	Semantic mapping is the task of incrementally updating a semantic map with incoming frames acquired by the robot. A semantic map is an array of objects, each object is defined by: type, pose, size, model. Objects are extracted from the depth image and assembled in a local map. Then, data association is performed to find corresponding objects between local and global map and update the global map accordingly.
+%	
+%	The process of building a semantic map consists in integrating into the robot digital representation of the environment the sequence of measurements acquired with on-board sensors. To this end,  it's necessary to set a global reference frame for the pose of the robot and objects in the scene.
+
+
+A key requirement for a "mobile and autonomous" robot is the capability of autonomously exploring and manipulating in human environments. To perform these tasks the robot needs a representation of the environment. In human environments, robots have to build autonomously such representation. As discussed in sec.~\ref{related}(related), a suitable representation for this type of robotic applications should contain object-level features to encode also semantic information. 
+
+The process of building a semantic map consists in integrating into the robot digital representation the sequence of measurements acquired with on-board sensors. As a first step, objects are extracted from the depth image and assembled in a local map. Then, the update of the map can be done by registering the current frame with a global model. To this end, it's necessary to know the pose of the robot relative to the global reference frame. This information may be provided by SLAM systems, while, in simulation environments is given by default. Once objects are transformed in global frame, data association is performed to find correspondences between local and global map (object tracking) and update the global map accordingly.
+	
+%	assumptions:
+%	-is localized
+%	-known environment (for navigation)
+%	-fixed reference frame
+%	-service robot
+%	-indoor
+%	-autonomous exploration
+%	-incremental mapping
+	
+	Our system of object tracking has the task of identifying the occurrence of scene features (in our case objects) across different views of the scene. This is typically performed in two steps. 1) feature extraction, build object from detection, 2) data-association, finds corresponding objects between global and local map.
+	
+	Feature extraction is performed by taking the output of the perception module and building an object (atomic entity of the map) from each detection. After that, by knowing the pose of the robot in the global frame, it's possible to transform the extracted objects in the global frame to find correspondences.
+	
+	Data association finds which objects in the global map correspond to the one observed in the local map. This correspondence is evaluated through a similarity measure. So that, finding a corresponding object can be casted into a nearest-neighbor search. Usually, similarity is computed through euclidean distance. In our problem, it's possible to leverage also semantic information. In case of a limited number of objects, brute-force is a reasonable technique to choose. In the simulated environment, the knowledge of the semantic class is perfect. In real world scenarios, object detectors return a probability distribution over semantic labels. In the first case, the corresponding object is the closest one with the same type. In the second case, euclidean distance could be weighted with class probabilities to represent a form of similarity measure.
+	
+	Map update is performed by consistently integrating incoming information from local map into global map. Input: maps, correspondences. Output: updated global map. Steps: for each object in local map check if it's already been seen, yes: merge, no: add to map. This strategy may fail in case of false positives returned by data association. Possible solution:  aging scheme.
+		
+	\section*{Semantic Map}
+	
+	In our system, a semantic map $\mathcal{SM} = \{\mathbf{O}_i\}_{i=1 \dots N}$ is a collection of objects, where each object $\mathbf{O}_i$ is a tuple defined by $<$Type,Pose3D,Size3D,Model$>$.
+	
+	Possible operations on the map are:
+	
+	\begin{itemize}
+		\item query for object: given an object it's possible to check if it's already present in the map
+		\item update object: allows to update an object present in the map with a new observation
+		\item add object: allows to add an object to the map if it's seen for the first time
+		\item render map: builds a 3d model from the collection of objects, this function can be used for navigation and visualization.
+		\item read/write on disk: these functions allow to save a map on disk and to load it for later use.
+	\end{itemize}
 	
 	
 	\bibliography{references}
