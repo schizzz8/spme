@@ -27,6 +27,7 @@
 	Acquisition and modeling of semantic information is a key requisite for mobile robots to be deployed in human environments. In this field, fundamental aspects faced by research are: the recognition of places and objects, the construction of semantic models and the exploration strategies to enrich contextual knowledge. In the remainder of this section, we will present relevant work that focused on the mentioned problems, namely: semantic perception, semantic mapping and semantic exploration.
 	
 	\subsection*{Semantic Perception}
+	
 	Extracting semantic information from visual data is one of the  fundamental problems of computer vision. Scene understanding can be decomposed into sub-tasks, depending on the information one is interested to extract from the input data. These sub-tasks can be organized on a progression that goes from coarse to fine grained inference.
 	
 	Image classification is the task of assigning a semantic label to an input image from a fixed set of categories. Ulrich and Nourbakhsh \cite{ulrich2000icra} propose an appearance-based place recognition system for topological localization. They use colour histogram features \cite{swain1991ijcv} and a simple voting scheme for nearest-neighbor matching. In a similar fashion, Torralba \etal~\cite{torralba2003context} derive an hidden Markov model (HMM) for place recognition and new place categorisation based on the global statistic feature retrieved from texture \cite{oliva2001ijcv}. In contrast, Lisin \etal~\cite{lisin2005cvpr} propose to model classes of images as a probability distribution over local features, in order to be combined with global features. This method has proven to perform well in applications where a rough segmentation of objects is available.
@@ -51,6 +52,13 @@
 	A possible solution to this shortcoming is to keep the map representation proposed in Gunther et al., while using a more sophisticated method to segment the scene. Nowadays, CNNs are proving to be an effective solution for visual problems like that, thus, it's a reasonable idea to consider their use in such a context.
 		
 	\subsection*{Semantic Exploration}
+	
+	The main goal of an autonomous robotic exploration algorithm is to direct robots towards unknown space, thus expanding the known and explored portion of a map which is being created as a robot moves. A common solution for such task are frontier-based strategies. Frontier edges are lines that separate known space from unknown space in an occupancy grid map. Once a frontier edge is detected, a point on the detected edge, which is normally the centroid, is assigned to a robot for exploration. In order to extract frontier edges, the entire map has to be processed, and as the map expands, processing it will consume more and more computational resources. More efficient schemes have also been proposed.
+	
+	Another class of exploration strategies deploy randomized search techniques such as the simple random walker, and the Sensor-based Random Tree (SRT), which is a variant of RRT. RRT is a path planning algorithm that samples space using randomly generated points. Random points are used to extend edges in a tree-like structure. One possible mode of RRT based exploration is to make robots follow the above mentioned tree structure as the tree structure grows.
+	
+	RRT is heavily biased towards unexplored and unvisited regions. In addition, RRT provides completeness, which ensures complete map coverage. Due to these properties, RRT has gained interest in exploration. However, making robots use RRT can be inefficient because of the possibility that robots may try to revisit map areas that are already explored. This is because branches can grow from random points at different time steps. To avoid this, SRT was used. SRT grows one branch at time, a robot follows this branch in space until the branch can no longer extend due to the existence of a physical obstacle to robot motion. However, this approach of SRT doesn't necessarily reduce overlapping either. If a branch is not able to extend, the robot has to go back and track previous positions in an attempt to find a position in space where a new branch can extend from. This process is known as backtracking, and is a major source for overlapping. As a result, researchers proposed solutions to reduce backtracking.
+	
 	
 	\section*{Technical Section}
 		 
@@ -137,6 +145,19 @@ The process of building a semantic map consists in integrating into the robot di
 	
 	Map update is performed by consistently integrating incoming information from local map into global map. Input: maps, correspondences. Output: updated global map. Steps: for each object in local map check if it's already been seen, yes: merge, no: add to map. This strategy may fail in case of false positives returned by data association. Possible solution:  aging scheme.
 		
+	\section*{Semantic Map}
+	
+	In our system, a semantic map $\mathcal{SM} = \{\mathbf{O}_i\}_{i=1 \dots N}$ is a collection of objects, where each object $\mathbf{O}_i$ is a tuple defined by $<$Type,Pose3D,Size3D,Model$>$.
+	
+	Possible operations on the map are:
+	
+	\begin{itemize}
+		\item query for object: given an object it's possible to check if it's already present in the map
+		\item update object: allows to update an object present in the map with a new observation
+		\item add object: allows to add an object to the map if it's seen for the first time
+		\item render map: builds a 3d model from the collection of objects, this function can be used for navigation and visualization.
+		\item read/write on disk: these functions allow to save a map on disk and to load it for later use.
+	\end{itemize}
 	
 	
 	\bibliography{references}
